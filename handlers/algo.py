@@ -91,15 +91,15 @@ class AlgoHandler():
         signal = dict(status='hold', case=None)
 
         if profile['status'] == 'ready' and insignt['status'] == 'buy':
-            signal = dict(status='buy', case="casè1")
+            signal = dict(status='buy', case="case1")
         elif profile['status'] == 'bought' and insignt['status'] == 'sell':
             gap = int(time.time()) - int(profile['_ts'])
             if gap > 60 * 60 * 24 * 3:
-                signal = dict(status='sell', case="casè2")
+                signal = dict(status='sell', case="case2")
             else:
-                signal = dict(status='hold', case="casè3")
+                signal = dict(status='hold', case="case3")
         else:
-            signal = dict(status='hold', case="casè4")
+            signal = dict(status='hold', case="case4")
         return signal
 
 
