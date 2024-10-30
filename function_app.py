@@ -1,10 +1,13 @@
 import logging
 import azure.functions as func
-from settings import settings
+import asyncio
+from handlers import main
+
 
 app = func.FunctionApp()
 
 
+# 45 23 * * *
 @app.schedule(schedule="30 * * * * *", arg_name="myTimer", run_on_startup=True,
               use_monitor=False) 
 async def timer_trigger(myTimer: func.TimerRequest) -> None:
@@ -12,6 +15,13 @@ async def timer_trigger(myTimer: func.TimerRequest) -> None:
         logging.info('The timer is past due!')
 
     logging.info('Python timer trigger function executed.')
-    logging.info(f'App version: {settings.app_version}')
-    logging.info(f'CosmosDB endpoint: {settings.cosmos_endpoint}')
-    logging.info(f'CosmosDB database_id: {settings.cosmos_database_id}')
+    MH = main.MainHandler()
+    await MH.run()
+
+
+async def test():
+    MH = main.MainHandler()
+    await MH.run()
+
+if __name__ == '__main__':
+    asyncio.run(test())

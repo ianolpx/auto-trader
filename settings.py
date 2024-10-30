@@ -19,13 +19,14 @@ class Settings():
     cosmos_database_id: str = "trader-db"
     cosmos_container_id: str = "Trader1"
     cosmos_partition_key: str = "T1"
-    bybit_api_key: str = ""
-    bybit_secret_key: str = ""
+    bybit_api_key: str = get_secret("trader-k-v", "bybit-api-key")
+    bybit_secret_key: str = get_secret("trader-k-v", "bybit-secret-key")
 
 
 settings = Settings()
 
-
+# python -m settings
 if __name__ == "__main__":
-    a = get_secret("trader-k-v", "a1")
-    print(a)
+    print(settings.bybit_api_key)
+    print(settings.bybit_secret_key)
+    print(settings.cosmos_api_key)
