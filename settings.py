@@ -21,6 +21,7 @@ class Settings():
     cosmos_partition_key: str = "T1"
     bybit_api_key: str = get_secret("trader-k-v", "bybit-api-key")
     bybit_secret_key: str = get_secret("trader-k-v", "bybit-secret-key")
+    line_token: str = get_secret("trader-k-v", "line-token")
 
 
 settings = Settings()

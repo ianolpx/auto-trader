@@ -1,6 +1,7 @@
 from handlers.algo import AlgoHandler
 from handlers.cosmosdb import CosmosDBHandler
 from handlers.bybit import BybitHandler
+from handlers.line import LineHandler
 import asyncio
 import logging
 
@@ -46,6 +47,7 @@ class MainHandler():
                 'T1': 'bybit'
             }, container)
             logging.info(res)
+            LineHandler().send_message("ETH bought")
         elif signal['status'] == 'sell':
             res = self.bybit.sell_eth()
             await self.db.update_profile({
@@ -54,6 +56,7 @@ class MainHandler():
                 'T1': 'bybit'
             }, container)
             logging.info(res)
+            LineHandler().send_message("ETH sold")
         else:
             logging.info('Holding...')
         await self.db.close()
