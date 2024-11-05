@@ -26,10 +26,10 @@ class BybitHandler():
         coin = result['list'][0]['coin'][0]
         return self.truncate(float(coin['walletBalance']) * 0.8, 2)
 
-    def buy_eth(self):
+    def buy_eth(self, symbol='ETHUSDT'):
         res = self.session.place_order(
             category="spot",
-            symbol="ETHUSDT",
+            symbol=symbol,
             side="Buy",
             orderType="Market",
             qty=self.get_available_budget_usdt()
@@ -51,22 +51,22 @@ class BybitHandler():
         decimal_b = self.get_decimal(result['b'][0][1])
         return max(decimal_a, decimal_b)
 
-    def get_sellable_quantity_eth(self) -> float:
+    def get_sellable_quantity_eth(self, qty_symbol) -> float:
         result = self.session.get_wallet_balance(
             accountType='UNIFIED',
-            coin='ETH')['result']
+            coin=qty_symbol)['result']
         coin_info = result['list'][0]['coin'][0]
         # decimal = self.get_spot_btcusdt_decimal()
         decimal = 5
         return self.truncate(float(coin_info['walletBalance']), decimal)
 
-    def sell_eth(self):
+    def sell_eth(self, symbol='ETHUSDT', qty_symbol='ETH'):
         res = self.session.place_order(
             category="spot",
-            symbol="ETHUSDT",
+            symbol=symbol,
             side="Sell",
             orderType="Market",
-            qty=self.get_sellable_quantity_eth()
+            qty=self.get_sellable_quantity_eth(qty_symbol)
         )
         return res
 
@@ -75,3 +75,5 @@ class BybitHandler():
 if __name__ == "__main__":
     BH = BybitHandler()
     print(BH.get_available_budget_usdt())
+    res = BH.buy_eth(symbol='ETH3LUSDT')
+    print(res)

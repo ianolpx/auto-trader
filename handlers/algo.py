@@ -1,14 +1,14 @@
 from sklearn.feature_selection import SelectKBest, f_classif
 from sklearn.metrics import f1_score, accuracy_score
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.model_selection import train_test_split, cross_val_score
+from sklearn.model_selection import train_test_split
+from sklearn.model_selection import GridSearchCV
 from ta import add_all_ta_features
 
 import pandas as pd
 import ccxt.async_support as ccxt
 import logging
 import asyncio
-import time
 
 
 class AlgoHandler():
@@ -26,7 +26,7 @@ class AlgoHandler():
                 columns=['timestamp', 'open', 'high', 'low', 'close', 'volume'])
             df['Datetime'] = pd.to_datetime(df['timestamp'], unit='ms')
             return df
-    
+
     async def get_nomalized_data(self, symbol, timeframe):
         df = await self.get_data('ETH/USDT', '1d')
         df = df[['Datetime', 'open', 'high', 'low', 'close', 'volume']]
@@ -70,7 +70,27 @@ class AlgoHandler():
             else:
                 new_y.append(0)
 
+        # GridSearchCV - RandomForestClassifier
+        param_grid = {
+            'n_estimators': [50, 100, 200],
+            'max_depth': [5, 10, 15, 20],
+            'min_samples_split': [2, 5, 10],
+            'min_samples_leaf': [1, 2, 4]
+        }
+
         classifier = RandomForestClassifier()
+        grid_search = GridSearchCV(
+            classifier, param_grid, cv=5, n_jobs=-1, verbose=2)
+        grid_search.fit(data['X_new'], new_y)
+        print(grid_search.best_params_)
+
+        classifier = RandomForestClassifier(
+            max_depth=grid_search.best_params_['max_depth'],
+            min_samples_leaf=grid_search.best_params_['min_samples_leaf'],
+            min_samples_split=grid_search.best_params_['min_samples_split'],
+            n_estimators=grid_search.best_params_['n_estimators']
+        )
+
         # val = cross_val_score(classifier, data['X_new'], new_y, cv=5)
         # print(val)
         X_train, X_test, y_train, y_test = train_test_split(
@@ -107,13 +127,13 @@ class AlgoHandler():
 
         if up_score['status'] == 'up' and down_score['status'] == 'down':
             if up_score['f1'] > down_score['f1']:
-                status = 'buy'
+                status = 'up'
             else:
-                status = 'sell'
+                status = 'down'
         elif up_score['status'] == 'up':
-            status = 'buy'
+            status = 'up'
         elif down_score['status'] == 'down':
-            status = 'sell'
+            status = 'down'
         else:
             status = 'hold'
         return dict(
@@ -130,16 +150,30 @@ class AlgoHandler():
             logging.error(e)
         signal = dict(status='hold', case=None)
 
-        # if profile['status'] == 'ready' and insignt['status'] == 'buy':
-        #     signal = dict(status='buy', case="case1")
-        # elif profile['status'] == 'bought' and insignt['status'] == 'sell':
-        #     gap = int(time.time()) - int(profile['_ts'])
-        #     if gap > 60 * 60 * 24 * 3:
-        #         signal = dict(status='sell', case="case2")
-        #     else:
-        #         signal = dict(status='hold', case="case3")
-        # else:
-        #     signal = dict(status='hold', case="case4")
+        if profile['status'] == 'ready' and insignt['status'] == 'up':
+            signal = dict(actions=['buy'], items=['ETH3LUSDT'], case="case1")
+        elif profile['status'] == 'bought3L' and insignt['status'] == 'down':
+            signal = dict(
+                actions=['sell', 'buy'],
+                items=['ETH3LUSDT', 'ETH3SUSDT'],
+                case="case2")
+        elif profile['status'] == 'bought3L' and insignt['status'] == 'up':
+            signal = dict(actions=['hold'], items=['ETH3LUSDT'], case="case3")
+        elif profile['status'] == 'bought3L' and insignt['status'] == 'hold':
+            signal = dict(actions=['sell'], items=['ETH3SUSDT'], case="case4")
+        elif profile['status'] == 'ready' and insignt['status'] == 'down':
+            signal = dict(actions=['buy'], items=['ETH3SUSDT'], case="case5")
+        elif profile['status'] == 'bought3S' and insignt['status'] == 'down':
+            signal = dict(actions=['hold'], items=['ETH3SUSDT'], case="case6")
+        elif profile['status'] == 'bought3S' and insignt['status'] == 'up':
+            signal = dict(
+                actions=['sell', 'buy'],
+                items=['ETH3SUSDT', 'ETH3LUSDT'],
+                case="case7")
+        elif profile['status'] == 'bought3S' and insignt['status'] == 'hold':
+            signal = dict(actions=['sell'], items=['ETH3SUSDT'], case="case8")
+        else:
+            signal = dict(status='hold', case="case10")
         return signal
 
 

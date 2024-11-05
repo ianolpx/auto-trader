@@ -4,6 +4,7 @@ from handlers.bybit import BybitHandler
 from handlers.line import LineHandler
 import asyncio
 import logging
+import time
 
 
 class MainHandler():
@@ -11,6 +12,31 @@ class MainHandler():
     algo = AlgoHandler()
     bybit = BybitHandler()
     profile = None
+
+    async def execute_action(self, action, item, container):
+        if action == 'buy':
+            res = self.bybit.buy_eth(symbol=item)
+            await self.db.update_profile({
+                'status': 'bought3L' if '3L' in item else 'bought3S',
+                'id': '1',
+                'T1': 'bybit'
+            }, container)
+            logging.info(res)
+            await LineHandler().send_message(f"{item} bought")
+        elif action == 'sell':
+            res = self.bybit.sell_eth(
+                symbol=item,
+                qty_symbol=item.split('USDT')[0]
+            )
+            await self.db.update_profile({
+                'status': 'ready',
+                'id': '1',
+                'T1': 'bybit'
+            }, container)
+            logging.info(res)
+            await LineHandler().send_message(f"{item} sold")
+        else:
+            logging.info('Holding...')
 
     async def run(self):
         logging.info('Running main handler...')
@@ -37,28 +63,10 @@ class MainHandler():
                 'status': 'hold-exception(signal)',
                 'case': 'case5'
             }
-        logging.info(profile)
-        logging.info(signal)
-        if signal['status'] == 'buy':
-            res = self.bybit.buy_eth()
-            await self.db.update_profile({
-                'status': 'bought',
-                'id': '1',
-                'T1': 'bybit'
-            }, container)
-            logging.info(res)
-            LineHandler().send_message("ETH bought")
-        elif signal['status'] == 'sell':
-            res = self.bybit.sell_eth()
-            await self.db.update_profile({
-                'status': 'ready',
-                'id': '1',
-                'T1': 'bybit'
-            }, container)
-            logging.info(res)
-            LineHandler().send_message("ETH sold")
-        else:
-            logging.info('Holding...')
+
+        for action, item in zip(signal['actions'], signal['items']):
+            await self.execute_action(action, item, container)
+            time.sleep(3)
         await self.db.close()
 
 
