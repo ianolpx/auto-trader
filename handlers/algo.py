@@ -9,6 +9,7 @@ import pandas as pd
 import ccxt.async_support as ccxt
 import logging
 import asyncio
+import random
 
 
 class AlgoHandler():
@@ -20,7 +21,8 @@ class AlgoHandler():
 
         async with bybit:
             # etc_ohlcv = await bybit.fetch_ohlcv('ETH/USDT', '1d')
-            etc_ohlcv = await bybit.fetch_ohlcv(symbol, timeframe)
+            # max data 
+            etc_ohlcv = await bybit.fetch_ohlcv(symbol, timeframe, limit=1000)
             df = pd.DataFrame(
                 etc_ohlcv,
                 columns=['timestamp', 'open', 'high', 'low', 'close', 'volume'])
@@ -28,7 +30,8 @@ class AlgoHandler():
             return df
 
     async def get_nomalized_data(self, symbol, timeframe):
-        df = await self.get_data('ETH/USDT', '1d')
+        # df = await self.get_data('ETH/USDT', '1d')
+        df = await self.get_data(symbol, timeframe)
         df = df[['Datetime', 'open', 'high', 'low', 'close', 'volume']]
         df.set_index('Datetime', inplace=True)
         _all_data = add_all_ta_features(
@@ -93,21 +96,36 @@ class AlgoHandler():
 
         # val = cross_val_score(classifier, data['X_new'], new_y, cv=5)
         # print(val)
-        X_train, X_test, y_train, y_test = train_test_split(
-            data['X_new'], new_y, test_size=0.2, random_state=42)
+        repect = 10
+        preds, f1s, accs = [], [], []
+        for x in range(1, repect):
+            X_train, X_test, y_train, y_test = train_test_split(
+                data['X_new'],
+                new_y,
+                test_size=0.2,
+                random_state=random.randint(1, 100))
 
-        classifier.fit(X_train, y_train)
-        y_pred = classifier.predict(X_test)
-        f1 = f1_score(y_test, y_pred)
-        acc = accuracy_score(y_test, y_pred)
+            classifier.fit(X_train, y_train)
+            y_pred = classifier.predict(X_test)
+            f1 = f1_score(y_test, y_pred)
+            acc = accuracy_score(y_test, y_pred)
 
-        cx = data['current_x'][data['best_features']]
-        real_pred = classifier.predict([cx])
-        pred = real_pred[0]
+            f1s.append(f1)
+            accs.append(acc)
 
-        if rate > 1 and pred == 1 and f1 > 0.75:
+            cx = data['current_x'][data['best_features']]
+            real_pred = classifier.predict([cx])
+            pred = real_pred[0]
+            preds.append(pred)
+
+        f1 = sum(f1s) / repect
+        acc = sum(accs) / repect
+        pred = sum(preds) / repect
+
+        # if rate > 1 and pred == 1 and f1 > 0.75:
+        if rate > 1 and pred > 0.7 and f1 > 0.75:
             status = 'up'
-        elif rate < 1 and pred == 1 and f1 > 0.75:
+        elif rate < 1 and pred > 0.7 and f1 > 0.75:
             status = 'down'
         else:
             status = 'hold'
@@ -115,15 +133,22 @@ class AlgoHandler():
         return dict(
             f1="{:.2f}".format(f1),
             acc="{:.2f}".format(acc),
-            pred=int(pred),
+            pred="{:.2f}".format(pred),
             status=status
         )
 
     async def get_insight(self):
-        data = await self.get_nomalized_data('ETH/USDT', '1d')
+        symbol = 'ETH/USDT'
+        # interval = '1d'
+        # up_score_rate = 1.02
+        # down_score_rate = 0.98
+        interval = '4h'
+        up_score_rate = 1.01
+        down_score_rate = 0.99
 
-        up_score = await self.get_up_down_score(data, 1.02)
-        down_score = await self.get_up_down_score(data, 0.98)
+        data = await self.get_nomalized_data(symbol, interval)
+        up_score = await self.get_up_down_score(data, up_score_rate)
+        down_score = await self.get_up_down_score(data, down_score_rate)
 
         if up_score['status'] == 'up' and down_score['status'] == 'down':
             if up_score['f1'] > down_score['f1']:
@@ -181,6 +206,7 @@ async def test():
     algo = AlgoHandler()
     # print(await algo.get_insight())
     print(await algo.get_signal({'status': 'ready', 'id': '1', 'T1': 'bybit'}))
+    # print(await algo.get_data('ETH/USDT', '4h'))
 
 # python -m handlers.algo
 if __name__ == "__main__":
