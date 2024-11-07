@@ -7,8 +7,11 @@ from handlers import main
 app = func.FunctionApp()
 
 
-@app.schedule(schedule="45 23 * * *", arg_name="myTimer", run_on_startup=True,
-              use_monitor=False)
+@app.timer(
+    schedule="53 3,7,11,15,19,23 * * *",
+    arg_name="myTimer",
+    run_on_startup=True,
+    use_monitor=False)
 async def timer_trigger(myTimer: func.TimerRequest) -> None:
     if myTimer.past_due:
         logging.info('The timer is past due!')
