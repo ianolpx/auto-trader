@@ -43,7 +43,7 @@ class BybitHandler():
         else:
             return 0
 
-    def get_spot_btcusdt_decimal(self) -> int:
+    def get_spot_decimal(self, symbol='BTCUSDT') -> int:
         result = self.session.get_orderbook(
                 category="spot",
                 symbol='ETHUSDT')['result']
@@ -57,7 +57,7 @@ class BybitHandler():
             coin=qty_symbol)['result']
         coin_info = result['list'][0]['coin'][0]
         # decimal = self.get_spot_btcusdt_decimal()
-        decimal = 5
+        decimal = self.get_spot_decimal(symbol=qty_symbol + 'USDT')
         return self.truncate(float(coin_info['walletBalance']), decimal)
 
     def sell_eth(self, symbol='ETHUSDT', qty_symbol='ETH'):
@@ -74,6 +74,7 @@ class BybitHandler():
 # python -m handlers.bybit
 if __name__ == "__main__":
     BH = BybitHandler()
-    print(BH.get_available_budget_usdt())
-    res = BH.buy_eth(symbol='ETH3LUSDT')
-    print(res)
+    print(BH.get_spot_decimal("ETH3L"))
+    # print(BH.get_available_budget_usdt())
+    # res = BH.buy_eth(symbol='ETH3LUSDT')
+    # print(res)
