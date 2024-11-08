@@ -7,7 +7,7 @@ from handlers import main
 app = func.FunctionApp()
 
 
-@app.timer(
+@app.schedule(
     schedule="53 3,7,11,15,19,23 * * *",
     arg_name="myTimer",
     run_on_startup=True,
