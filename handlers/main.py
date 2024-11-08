@@ -37,6 +37,8 @@ class MainHandler():
             await LineHandler().send_message(f"{item} sold")
         else:
             logging.info('Holding...')
+            await LineHandler().send_message(
+                "Holding...")
 
     async def run(self):
         logging.info('Running main handler...')
