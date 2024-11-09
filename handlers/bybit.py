@@ -24,7 +24,7 @@ class BybitHandler():
             accountType='UNIFIED',
             coin='USDT')['result']
         coin = result['list'][0]['coin'][0]
-        return self.truncate(float(coin['walletBalance']) * 0.8, 2)
+        return self.truncate(float(coin['walletBalance']) * 0.95, 2)
 
     def buy_eth(self, symbol='ETHUSDT'):
         res = self.session.place_order(
@@ -46,7 +46,7 @@ class BybitHandler():
     def get_spot_decimal(self, symbol='BTCUSDT') -> int:
         result = self.session.get_orderbook(
                 category="spot",
-                symbol='ETHUSDT')['result']
+                symbol=symbol)['result']
         decimal_a = self.get_decimal(result['a'][0][1])
         decimal_b = self.get_decimal(result['b'][0][1])
         return max(decimal_a, decimal_b)
@@ -74,7 +74,7 @@ class BybitHandler():
 # python -m handlers.bybit
 if __name__ == "__main__":
     BH = BybitHandler()
-    print(BH.get_spot_decimal("ETH3L"))
+    print(BH.get_spot_decimal("ETH3SUSDT"))
     # print(BH.get_available_budget_usdt())
     # res = BH.buy_eth(symbol='ETH3LUSDT')
     # print(res)
