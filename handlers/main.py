@@ -27,7 +27,7 @@ class MainHandler():
             except Exception as e:
                 logging.error(e)
                 await LineHandler().send_message(
-                    f"Error buying {item}")
+                    f"Error buying {item}, {e}")
         elif action == 'sell':
             try:
                 res = self.bybit.sell_eth(
@@ -42,9 +42,8 @@ class MainHandler():
                 logging.info(res)
                 await LineHandler().send_message(f"{item} sold")
             except Exception as e:
-                logging.error(e)
                 await LineHandler().send_message(
-                    f"Error selling {item}")
+                    f"Error selling {item}, {e}")
         else:
             logging.info('Holding...')
             await LineHandler().send_message(
