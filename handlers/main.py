@@ -15,26 +15,36 @@ class MainHandler():
 
     async def execute_action(self, action, item, container):
         if action == 'buy':
-            res = self.bybit.buy_eth(symbol=item)
-            await self.db.update_profile({
-                'status': 'bought3L' if '3L' in item else 'bought3S',
-                'id': '1',
-                'T1': 'bybit'
-            }, container)
-            logging.info(res)
-            await LineHandler().send_message(f"{item} bought")
+            try:
+                res = self.bybit.buy_eth(symbol=item)
+                await self.db.update_profile({
+                    'status': 'bought3L' if '3L' in item else 'bought3S',
+                    'id': '1',
+                    'T1': 'bybit'
+                }, container)
+                logging.info(res)
+                await LineHandler().send_message(f"{item} bought")
+            except Exception as e:
+                logging.error(e)
+                await LineHandler().send_message(
+                    f"Error buying {item}")
         elif action == 'sell':
-            res = self.bybit.sell_eth(
-                symbol=item,
-                qty_symbol=item.split('USDT')[0]
-            )
-            await self.db.update_profile({
-                'status': 'ready',
-                'id': '1',
-                'T1': 'bybit'
-            }, container)
-            logging.info(res)
-            await LineHandler().send_message(f"{item} sold")
+            try:
+                res = self.bybit.sell_eth(
+                    symbol=item,
+                    qty_symbol=item.split('USDT')[0]
+                )
+                await self.db.update_profile({
+                    'status': 'ready',
+                    'id': '1',
+                    'T1': 'bybit'
+                }, container)
+                logging.info(res)
+                await LineHandler().send_message(f"{item} sold")
+            except Exception as e:
+                logging.error(e)
+                await LineHandler().send_message(
+                    f"Error selling {item}")
         else:
             logging.info('Holding...')
             await LineHandler().send_message(
