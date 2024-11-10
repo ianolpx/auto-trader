@@ -22,7 +22,7 @@ class AlgoHandler():
         async with bybit:
             # etc_ohlcv = await bybit.fetch_ohlcv('ETH/USDT', '1d')
             # max data 
-            etc_ohlcv = await bybit.fetch_ohlcv(symbol, timeframe, limit=1000)
+            etc_ohlcv = await bybit.fetch_ohlcv(symbol, timeframe, limit=400)
             df = pd.DataFrame(
                 etc_ohlcv,
                 columns=['timestamp', 'open', 'high', 'low', 'close', 'volume'])
@@ -31,7 +31,11 @@ class AlgoHandler():
 
     async def get_nomalized_data(self, symbol, timeframe):
         # df = await self.get_data('ETH/USDT', '1d')
-        df = await self.get_data(symbol, timeframe)
+        try:
+            df = await self.get_data(symbol, timeframe)
+        except Exception as e:
+            logging.error(e)
+            return None
         df = df[['Datetime', 'open', 'high', 'low', 'close', 'volume']]
         df.set_index('Datetime', inplace=True)
         _all_data = add_all_ta_features(
@@ -68,10 +72,16 @@ class AlgoHandler():
         new_y = []
         df = data['df']
         for close, target in zip(df['close'], data['y']):
-            if target > close * rate:
-                new_y.append(1)
+            if rate > 1.0:
+                if target > close * rate:
+                    new_y.append(1)
+                else:
+                    new_y.append(0)
             else:
-                new_y.append(0)
+                if target < close * rate:
+                    new_y.append(1)
+                else:
+                    new_y.append(0)
 
         # GridSearchCV - RandomForestClassifier
         param_grid = {
@@ -123,9 +133,9 @@ class AlgoHandler():
         pred = sum(preds) / repect
 
         # if rate > 1 and pred == 1 and f1 > 0.75:
-        if rate > 1 and pred > 0.7 and f1 > 0.75:
+        if rate > 1 and pred > 0.7 and (f1+acc) > 1.4:
             status = 'up'
-        elif rate < 1 and pred > 0.7 and f1 > 0.75:
+        elif rate < 1 and pred > 0.7 and (f1+acc) > 1.4:
             status = 'down'
         else:
             status = 'hold'
@@ -142,9 +152,9 @@ class AlgoHandler():
         # interval = '1d'
         # up_score_rate = 1.02
         # down_score_rate = 0.98
-        interval = '4h'
-        up_score_rate = 1.01
-        down_score_rate = 0.99
+        interval = '1d'
+        up_score_rate = 1.005
+        down_score_rate = 0.995
 
         data = await self.get_nomalized_data(symbol, interval)
         up_score = await self.get_up_down_score(data, up_score_rate)
