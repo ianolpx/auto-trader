@@ -198,7 +198,7 @@ class AlgoHandler():
         elif profile['status'] == 'bought3S' and insignt['status'] == 'hold':
             signal = dict(actions=['sell'], items=['ETH3SUSDT'], case="case8")
         else:
-            signal = dict(status='hold', case="case10")
+            signal = dict(actions=['hold'], items=['ELSE'], case="case10")
         return signal
 
 

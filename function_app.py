@@ -3,7 +3,6 @@ import azure.functions as func
 import asyncio
 from handlers import main
 
-
 app = func.FunctionApp()
 
 
@@ -25,5 +24,6 @@ async def test():
     MH = main.MainHandler()
     await MH.run()
 
+# python -m function_app
 if __name__ == '__main__':
     asyncio.run(test())
