@@ -14,8 +14,6 @@ class MainHandler():
     profile = None
 
     async def execute_action(self, action, item, container):
-        utc_time = time.strftime(
-                    '%Y-%m-%d %H:%M:%S', time.gmtime())
         if action == 'buy':
             try:
                 res = self.bybit.buy_eth(symbol=item)
@@ -24,13 +22,11 @@ class MainHandler():
                     'id': '1',
                     'T1': 'bybit'
                 }, container)
-                logging.info(res)
                 await LineHandler().send_message(
-                    f"{item} bought at {utc_time} (utc)")
+                    f"{item} bought")
             except Exception as e:
-                logging.error(e)
                 await LineHandler().send_message(
-                    f"Error buying {item}, {e} at {utc_time} (utc)")
+                    f"Error buying {item}, {e}")
         elif action == 'sell':
             try:
                 res = self.bybit.sell_eth(
@@ -44,17 +40,16 @@ class MainHandler():
                 }, container)
                 logging.info(res)
                 await LineHandler().send_message(
-                    f"{item} sold at {utc_time} (utc)")
+                    f"{item} sold")
             except Exception as e:
                 await LineHandler().send_message(
-                    f"Error selling {item}, {e} at {utc_time} (utc)")
+                    f"Error selling {item}, {e}")
         else:
-            logging.info('Holding...')
             await LineHandler().send_message(
-                "Holding... at {utc_time} (utc)")
+                "Holding")
 
     async def run(self):
-        logging.info('Running main handler...')
+        await LineHandler().send_message("Running main handler")
         try:
             container = await self.db.get_or_create_container()
         except Exception as e:

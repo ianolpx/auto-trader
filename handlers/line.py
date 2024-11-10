@@ -1,6 +1,7 @@
 from settings import settings
 import requests
 import asyncio
+import time
 
 
 class LineHandler:
@@ -8,6 +9,9 @@ class LineHandler:
     token = settings.line_token
 
     async def send_message(self, message):
+        utc_time = time.strftime(
+            '%Y-%m-%d %H:%M:%S', time.gmtime())
+        message = f"{message} at {utc_time} (utc)"
         with requests.post(
             self.url,
             headers={
