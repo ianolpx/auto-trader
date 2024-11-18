@@ -29,7 +29,7 @@ class AlgoHandler():
             df['Datetime'] = pd.to_datetime(df['timestamp'], unit='ms')
             return df
 
-    async def get_nomalized_data(self, symbol, timeframe):
+    async def get_nomalized_data(self, symbol, timeframe, shift=5):
         # df = await self.get_data('ETH/USDT', '1d')
         try:
             df = await self.get_data(symbol, timeframe)
@@ -46,7 +46,7 @@ class AlgoHandler():
         _all_data = _all_data.drop(
             ['trend_psar_down', 'trend_psar_up'], axis=1)
         _all_data.dropna(inplace=True)
-        _all_data['target'] = _all_data['close'].shift(-5)
+        _all_data['target'] = _all_data['close'].shift(-shift)
         current_x = _all_data.iloc[-1].drop('target')
         _all_data.dropna(inplace=True)
 
@@ -149,14 +149,11 @@ class AlgoHandler():
 
     async def get_insight(self):
         symbol = 'ETH/USDT'
-        # interval = '1d'
-        # up_score_rate = 1.02
-        # down_score_rate = 0.98
         interval = '1d'
-        up_score_rate = 1.005
-        down_score_rate = 0.995
+        up_score_rate = 1.01
+        down_score_rate = 0.99
 
-        data = await self.get_nomalized_data(symbol, interval)
+        data = await self.get_nomalized_data(symbol, interval, shift=7)
         up_score = await self.get_up_down_score(data, up_score_rate)
         down_score = await self.get_up_down_score(data, down_score_rate)
 
@@ -186,36 +183,57 @@ class AlgoHandler():
         signal = dict(status='hold', case=None)
 
         if profile['status'] == 'ready' and insignt['status'] == 'up':
-            signal = dict(actions=['buy'], items=['ETH3LUSDT'], case="case1")
+            signal = dict(
+                actions=['buy'],
+                items=['ETH3LUSDT'],
+                case="case1")
         elif profile['status'] == 'bought3L' and insignt['status'] == 'down':
             signal = dict(
                 actions=['sell', 'buy'],
                 items=['ETH3LUSDT', 'ETH3SUSDT'],
                 case="case2")
         elif profile['status'] == 'bought3L' and insignt['status'] == 'up':
-            signal = dict(actions=['hold'], items=['ETH3LUSDT'], case="case3")
+            signal = dict(
+                actions=['hold'],
+                items=['ETH3LUSDT'],
+                case="case3")
         elif profile['status'] == 'bought3L' and insignt['status'] == 'hold':
-            signal = dict(actions=['sell'], items=['ETH3SUSDT'], case="case4")
+            signal = dict(
+                actions=['sell'],
+                items=['ETH3LUSDT'],
+                case="case4")
         elif profile['status'] == 'ready' and insignt['status'] == 'down':
-            signal = dict(actions=['buy'], items=['ETH3SUSDT'], case="case5")
+            signal = dict(
+                actions=['buy'],
+                items=['ETH3SUSDT'], 
+                case="case5")
         elif profile['status'] == 'bought3S' and insignt['status'] == 'down':
-            signal = dict(actions=['hold'], items=['ETH3SUSDT'], case="case6")
+            signal = dict(
+                actions=['hold'],
+                items=['ETH3SUSDT'],
+                case="case6")
         elif profile['status'] == 'bought3S' and insignt['status'] == 'up':
             signal = dict(
                 actions=['sell', 'buy'],
                 items=['ETH3SUSDT', 'ETH3LUSDT'],
                 case="case7")
         elif profile['status'] == 'bought3S' and insignt['status'] == 'hold':
-            signal = dict(actions=['sell'], items=['ETH3SUSDT'], case="case8")
+            signal = dict(
+                actions=['sell'],
+                items=['ETH3SUSDT'],
+                case="case8")
         else:
-            signal = dict(actions=['hold'], items=['ELSE'], case="case10")
+            signal = dict(
+                actions=['hold'],
+                items=['ELSE'],
+                case="case10")
         return signal
 
 
 async def test():
     algo = AlgoHandler()
-    # print(await algo.get_insight())
-    print(await algo.get_signal({'status': 'ready', 'id': '1', 'T1': 'bybit'}))
+    print(await algo.get_insight())
+    # print(await algo.get_signal({'status': 'ready', 'id': '1', 'T1': 'bybit'}))
     # print(await algo.get_data('ETH/USDT', '4h'))
 
 # python -m handlers.algo
