@@ -1,7 +1,7 @@
 import logging
 import azure.functions as func
 import asyncio
-from handlers import main
+from handlers.core import execute
 
 app = func.FunctionApp()
 
@@ -16,13 +16,13 @@ async def timer_trigger(myTimer: func.TimerRequest) -> None:
         logging.info('The timer is past due!')
 
     logging.info('Python timer trigger function executed.')
-    MH = main.MainHandler()
-    await MH.run()
+    execute_handler = execute.ExecuteHandler()
+    await execute_handler.run()
 
 
 async def test():
-    MH = main.MainHandler()
-    await MH.run()
+    execute_handler = execute.ExecuteHandler()
+    await execute_handler.run()
 
 # python -m function_app
 if __name__ == '__main__':

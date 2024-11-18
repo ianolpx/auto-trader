@@ -1,13 +1,13 @@
-from handlers.algo import AlgoHandler
-from handlers.cosmosdb import CosmosDBHandler
-from handlers.bybit import BybitHandler
-from handlers.line import LineHandler
+from handlers.core.algo import AlgoHandler
+from handlers.db.cosmosdb import CosmosDBHandler
+from handlers.api.bybit import BybitHandler
+from handlers.api.line import LineHandler
 import asyncio
 import logging
 import time
 
 
-class MainHandler():
+class ExecuteHandler():
     db = CosmosDBHandler()
     algo = AlgoHandler()
     bybit = BybitHandler()
@@ -81,8 +81,8 @@ class MainHandler():
 
 
 async def main():
-    main = MainHandler()
-    await main.run()
+    execute_handler = ExecuteHandler()
+    await execute_handler.run()
 
 # python -m handlers.main
 if __name__ == "__main__":
