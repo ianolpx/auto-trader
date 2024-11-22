@@ -84,6 +84,6 @@ async def main():
     execute_handler = ExecuteHandler()
     await execute_handler.run()
 
-# python -m handlers.main
+# python -m handlers.core.execute
 if __name__ == "__main__":
     asyncio.run(main())

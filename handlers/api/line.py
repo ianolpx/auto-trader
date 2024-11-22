@@ -11,7 +11,7 @@ class LineHandler:
     async def send_message(self, message):
         utc_time = time.strftime(
             '%Y-%m-%d %H:%M:%S', time.gmtime())
-        message = f"{message} at {utc_time} (utc)"
+        message = f"{message} at {utc_time} (UTC)"
         with requests.post(
             self.url,
             headers={

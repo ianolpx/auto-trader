@@ -6,6 +6,7 @@ from sklearn.model_selection import GridSearchCV
 from ta import add_all_ta_features
 
 import pandas as pd
+import numpy as np
 import ccxt.async_support as ccxt
 import logging
 import asyncio
@@ -21,7 +22,7 @@ class AlgoHandler():
 
         async with bybit:
             # etc_ohlcv = await bybit.fetch_ohlcv('ETH/USDT', '1d')
-            # max data 
+            # max data
             etc_ohlcv = await bybit.fetch_ohlcv(symbol, timeframe, limit=400)
             df = pd.DataFrame(
                 etc_ohlcv,
@@ -53,7 +54,7 @@ class AlgoHandler():
         X = _all_data.drop('target', axis=1)
         y = _all_data['target']
 
-        k_best = SelectKBest(f_classif, k=10)
+        k_best = SelectKBest(f_classif, k=20)
         k_best.fit(X, y)
         X.columns[k_best.get_support()]
 
@@ -68,20 +69,11 @@ class AlgoHandler():
             best_features=best_features
         )
 
-    async def get_up_down_score(self, data, rate):
+    async def get_up_down_score(self, data):
         new_y = []
         df = data['df']
-        for close, target in zip(df['close'], data['y']):
-            if rate > 1.0:
-                if target > close * rate:
-                    new_y.append(1)
-                else:
-                    new_y.append(0)
-            else:
-                if target < close * rate:
-                    new_y.append(1)
-                else:
-                    new_y.append(0)
+        # y = np.where(X['Close'].shift(-5) > X['Close'], 1, -1)
+        new_y = np.where(df['close'].shift(-5) > df['close'], 1, -1)
 
         # GridSearchCV - RandomForestClassifier
         param_grid = {
@@ -133,9 +125,11 @@ class AlgoHandler():
         pred = sum(preds) / repect
 
         # if rate > 1 and pred == 1 and f1 > 0.75:
-        if rate > 1 and pred > 0.7 and (f1+acc) > 1.4:
+        print(pred)
+        # if rate > 1 and pred > 0.7 and (f1+acc) > 1.4:
+        if pred > 0:
             status = 'up'
-        elif rate < 1 and pred > 0.7 and (f1+acc) > 1.4:
+        elif pred <= 0:
             status = 'down'
         else:
             status = 'hold'
@@ -148,31 +142,33 @@ class AlgoHandler():
         )
 
     async def get_insight(self):
-        symbol = 'ETH/USDT'
+        symbol = 'BTC/USDT'
         interval = '1d'
-        up_score_rate = 1.01
-        down_score_rate = 0.99
+        # up_score_rate = 1.01
+        # down_score_rate = 0.99
 
-        data = await self.get_nomalized_data(symbol, interval, shift=7)
-        up_score = await self.get_up_down_score(data, up_score_rate)
-        down_score = await self.get_up_down_score(data, down_score_rate)
-
-        if up_score['status'] == 'up' and down_score['status'] == 'down':
-            if up_score['f1'] > down_score['f1']:
-                status = 'up'
-            else:
-                status = 'down'
-        elif up_score['status'] == 'up':
-            status = 'up'
-        elif down_score['status'] == 'down':
-            status = 'down'
-        else:
-            status = 'hold'
-        return dict(
-            up_score=up_score,
-            down_score=down_score,
-            status=status
-        )
+        data = await self.get_nomalized_data(symbol, interval, shift=5)
+        # up_score = await self.get_up_down_score(data, up_score_rate)
+        # down_score = await self.get_up_down_score(data, down_score_rate)
+        score = await self.get_up_down_score(data)
+        # print(score)
+        # if up_score['status'] == 'up' and down_score['status'] == 'down':
+        #     if up_score['f1'] > down_score['f1']:
+        #         status = 'up'
+        #     else:
+        #         status = 'down'
+        # elif up_score['status'] == 'up':
+        #     status = 'up'
+        # elif down_score['status'] == 'down':
+        #     status = 'down'
+        # else:
+        #     status = 'hold'
+        # return dict(
+        #     up_score=up_score,
+        #     down_score=down_score,
+        #     status=status
+        # )
+        return score
 
     async def get_signal(self, profile: dict):
         try:
@@ -181,46 +177,47 @@ class AlgoHandler():
         except Exception as e:
             logging.error(e)
         signal = dict(status='hold', case=None)
+        target = "BTC"
 
         if profile['status'] == 'ready' and insignt['status'] == 'up':
             signal = dict(
                 actions=['buy'],
-                items=['ETH3LUSDT'],
+                items=[f'{target}3LUSDT'],
                 case="case1")
         elif profile['status'] == 'bought3L' and insignt['status'] == 'down':
             signal = dict(
                 actions=['sell', 'buy'],
-                items=['ETH3LUSDT', 'ETH3SUSDT'],
+                items=[f'{target}3LUSDT', f'{target}3SUSDT'],
                 case="case2")
         elif profile['status'] == 'bought3L' and insignt['status'] == 'up':
             signal = dict(
                 actions=['hold'],
-                items=['ETH3LUSDT'],
+                items=[f'{target}3LUSDT'],
                 case="case3")
         elif profile['status'] == 'bought3L' and insignt['status'] == 'hold':
             signal = dict(
                 actions=['sell'],
-                items=['ETH3LUSDT'],
+                items=[f'{target}3LUSDT'],
                 case="case4")
         elif profile['status'] == 'ready' and insignt['status'] == 'down':
             signal = dict(
                 actions=['buy'],
-                items=['ETH3SUSDT'], 
+                items=[f'{target}3SUSDT'],
                 case="case5")
         elif profile['status'] == 'bought3S' and insignt['status'] == 'down':
             signal = dict(
                 actions=['hold'],
-                items=['ETH3SUSDT'],
+                items=[f'{target}3SUSDT'],
                 case="case6")
         elif profile['status'] == 'bought3S' and insignt['status'] == 'up':
             signal = dict(
                 actions=['sell', 'buy'],
-                items=['ETH3SUSDT', 'ETH3LUSDT'],
+                items=[f'{target}3SUSDT', f'{target}3LUSDT'],
                 case="case7")
         elif profile['status'] == 'bought3S' and insignt['status'] == 'hold':
             signal = dict(
                 actions=['sell'],
-                items=['ETH3SUSDT'],
+                items=[f'{target}3SUSDT'],
                 case="case8")
         else:
             signal = dict(
@@ -236,6 +233,6 @@ async def test():
     # print(await algo.get_signal({'status': 'ready', 'id': '1', 'T1': 'bybit'}))
     # print(await algo.get_data('ETH/USDT', '4h'))
 
-# python -m handlers.algo
+# python -m handlers.core.algo
 if __name__ == "__main__":
     asyncio.run(test())
