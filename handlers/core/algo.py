@@ -143,31 +143,10 @@ class AlgoHandler():
 
     async def get_insight(self):
         symbol = 'BTC/USDT'
-        interval = '1d'
-        # up_score_rate = 1.01
-        # down_score_rate = 0.99
+        interval = '4h'
 
         data = await self.get_nomalized_data(symbol, interval, shift=5)
-        # up_score = await self.get_up_down_score(data, up_score_rate)
-        # down_score = await self.get_up_down_score(data, down_score_rate)
         score = await self.get_up_down_score(data)
-        # print(score)
-        # if up_score['status'] == 'up' and down_score['status'] == 'down':
-        #     if up_score['f1'] > down_score['f1']:
-        #         status = 'up'
-        #     else:
-        #         status = 'down'
-        # elif up_score['status'] == 'up':
-        #     status = 'up'
-        # elif down_score['status'] == 'down':
-        #     status = 'down'
-        # else:
-        #     status = 'hold'
-        # return dict(
-        #     up_score=up_score,
-        #     down_score=down_score,
-        #     status=status
-        # )
         return score
 
     async def get_signal(self, profile: dict):
@@ -229,8 +208,8 @@ class AlgoHandler():
 
 async def test():
     algo = AlgoHandler()
-    print(await algo.get_insight())
-    # print(await algo.get_signal({'status': 'ready', 'id': '1', 'T1': 'bybit'}))
+    # print(await algo.get_insight())
+    print(await algo.get_signal({'status': 'ready', 'id': '1', 'T1': 'bybit'}))
     # print(await algo.get_data('ETH/USDT', '4h'))
 
 # python -m handlers.core.algo
