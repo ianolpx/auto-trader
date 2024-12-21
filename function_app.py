@@ -6,8 +6,9 @@ from handlers.core import execute
 app = func.FunctionApp()
 
 
+# schedule="49 23 * * *",
 @app.schedule(
-    schedule="49 23 * * *",
+    schedule="53 3,7,11,15,19,23 * * *",
     arg_name="myTimer",
     run_on_startup=True,
     use_monitor=False)
