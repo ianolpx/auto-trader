@@ -7,7 +7,6 @@ from handlers.core import execute
 app = func.FunctionApp()
 
 
-# schedule="49 23 * * *",
 @app.schedule(
     schedule="57 * * * *",
     arg_name="myTimer",
@@ -18,21 +17,20 @@ async def timer_trigger(myTimer: func.TimerRequest) -> None:
         logging.info('The timer is past due!')
 
     logging.info('Python timer trigger function executed.')
-    execute_handler = execute.ExecuteHandler()
-    await execute_handler.run()
+    # execute_handler = execute.ExecuteHandler()
+    # await execute_handler.run()
+    await main_trigger()
 
 
-async def test():
+async def main_trigger():
+    # utc time
     hour = time.localtime().tm_hour
-    # print(hour)
     if hour in [3, 7, 11, 15, 19, 23]:
         execute_handler = execute.ExecuteHandler()
         await execute_handler.run()
     else:
         logging.info('The timer is not in the list!')
-    # execute_handler = execute.ExecuteHandler()
-    # await execute_handler.run()
 
 # python -m function_app
 if __name__ == '__main__':
-    asyncio.run(test())
+    asyncio.run(main_trigger())
