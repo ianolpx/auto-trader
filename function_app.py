@@ -9,7 +9,7 @@ app = func.FunctionApp()
 
 # schedule="57 * * * *",
 @app.schedule(
-    schedule="* * * * *",
+    schedule="40 * * * * *",
     arg_name="myTimer",
     run_on_startup=True,
     use_monitor=False)
