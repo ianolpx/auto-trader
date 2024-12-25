@@ -39,17 +39,18 @@ class ExecuteHandler():
                     'T1': 'bybit'
                 }, container)
                 logging.info(res)
+                budget = self.bybit.get_available_budget_usdt()
                 await LineHandler().send_message(
-                    f"{item} sold")
+                    f"{item} sold, budget: {budget}")
             except Exception as e:
                 await LineHandler().send_message(
                     f"Error selling {item}, {e}")
         else:
-            await LineHandler().send_message(
-                "Holding")
+            # await LineHandler().send_message("Holding")
+            pass
 
     async def run(self):
-        await LineHandler().send_message("Running main handler")
+        # await LineHandler().send_message("Running main handler")
         try:
             container = await self.db.get_or_create_container()
         except Exception as e:
