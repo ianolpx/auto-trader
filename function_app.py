@@ -7,9 +7,9 @@ from handlers.core import execute
 app = func.FunctionApp()
 
 
-# schedule="57 * * * *",
+# schedule="40 * * * * *",
 @app.schedule(
-    schedule="40 * * * * *",
+    schedule="58 * * * *",
     arg_name="myTimer",
     run_on_startup=True,
     use_monitor=False)
@@ -24,10 +24,10 @@ async def timer_trigger(myTimer: func.TimerRequest) -> None:
 
 async def main_trigger():
     # utc time
-    # hour = time.localtime().tm_hour
-    minute = time.localtime().tm_min
-    # if hour in [3, 7, 11, 15, 19, 23]:
-    if minute in [14, 29, 44, 59]:
+    hour = time.localtime().tm_hour
+    # minute = time.localtime().tm_min
+    if hour in [3, 7, 11, 15, 19, 23]:
+    # if minute in [14, 29, 44, 59]:
         execute_handler = execute.ExecuteHandler()
         await execute_handler.run()
     else:

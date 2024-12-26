@@ -144,8 +144,8 @@ class AlgoHandler():
     async def get_insight(self):
         symbol = 'BTC/USDT'
         # 15m, 30m, 1h, 4h, 1d, 1w
-        # interval = '4h'
-        interval = '15m'
+        interval = '4h'
+        # interval = '15m'
 
         data = await self.get_nomalized_data(symbol, interval, shift=5)
         score = await self.get_up_down_score(data)
