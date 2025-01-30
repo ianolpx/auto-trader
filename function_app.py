@@ -11,7 +11,7 @@ app = func.FunctionApp()
 @app.schedule(
     schedule="58 * * * *",
     arg_name="myTimer",
-    run_on_startup=True,
+    run_on_startup=False,
     use_monitor=False)
 async def timer_trigger(myTimer: func.TimerRequest) -> None:
     if myTimer.past_due:

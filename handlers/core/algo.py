@@ -4,6 +4,7 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import train_test_split
 from sklearn.model_selection import GridSearchCV
 from ta import add_all_ta_features
+from settings import settings
 
 import pandas as pd
 import numpy as np
@@ -144,7 +145,7 @@ class AlgoHandler():
     async def get_insight(self):
         symbol = 'BTC/USDT'
         # 15m, 30m, 1h, 4h, 1d, 1w
-        interval = '4h'
+        interval = settings.target_period
         # interval = '15m'
 
         data = await self.get_nomalized_data(symbol, interval, shift=5)
