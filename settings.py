@@ -13,7 +13,7 @@ def get_secret(key_vault_name: str, key_name: str) -> tuple:
 
 
 class Settings():
-    app_version: str = "0.0.3"
+    app_version: str = "0.0.4"
     cosmos_api_key: str = get_secret("trader-k-v", "cosmos-api-key")
     cosmos_endpoint: str = get_secret("trader-k-v", "cosmos-endpoint")
     cosmos_database_id: str = "trader-db"
@@ -22,6 +22,7 @@ class Settings():
     bybit_api_key: str = get_secret("trader-k-v", "bybit-api-key")
     bybit_secret_key: str = get_secret("trader-k-v", "bybit-secret-key")
     line_token: str = get_secret("trader-k-v", "line-token")
+    target_period: str = get_secret("trader-k-v", "target-period")
 
 
 settings = Settings()
