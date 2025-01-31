@@ -1,7 +1,7 @@
 from handlers.core.algo import AlgoHandler
 from handlers.db.cosmosdb import CosmosDBHandler
 from handlers.api.bybit import BybitHandler
-from handlers.api.line import LineHandler
+from handlers.api.notifier import NotifyHandler
 import asyncio
 import logging
 import time
@@ -22,10 +22,10 @@ class ExecuteHandler():
                     'id': '1',
                     'T1': 'bybit'
                 }, container)
-                await LineHandler().send_message(
+                await NotifyHandler().send_message(
                     f"{item} bought")
             except Exception as e:
-                await LineHandler().send_message(
+                await NotifyHandler().send_message(
                     f"Error buying {item}, {e}")
         elif action == 'sell':
             try:
@@ -40,10 +40,10 @@ class ExecuteHandler():
                 }, container)
                 logging.info(res)
                 budget = self.bybit.get_available_budget_usdt()
-                await LineHandler().send_message(
+                await NotifyHandler().send_message(
                     f"{item} sold, budget: {budget}")
             except Exception as e:
-                await LineHandler().send_message(
+                await NotifyHandler().send_message(
                     f"Error selling {item}, {e}")
         else:
             # await LineHandler().send_message("Holding")

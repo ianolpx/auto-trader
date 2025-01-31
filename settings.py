@@ -23,6 +23,10 @@ class Settings():
     bybit_secret_key: str = get_secret("trader-k-v", "bybit-secret-key")
     line_token: str = get_secret("trader-k-v", "line-token")
     target_period: str = get_secret("trader-k-v", "target-period")
+    mailjet_api_key: str = get_secret("trader-k-v", "mailjet-api-key")
+    mailjet_api_secret: str = get_secret("trader-k-v", "mailjet-api-secret")
+    mailjet_sender_id: str = get_secret("trader-k-v", "mailjet-sender-id")
+    mailjet_receiver_id: str = get_secret("trader-k-v", "mailjet-receiver-id")
 
 
 settings = Settings()
