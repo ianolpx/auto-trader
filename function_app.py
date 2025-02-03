@@ -3,6 +3,7 @@ import azure.functions as func
 import asyncio
 import time
 from handlers.core import execute
+from settings import settings
 
 app = func.FunctionApp()
 
@@ -25,9 +26,11 @@ async def timer_trigger(myTimer: func.TimerRequest) -> None:
 async def main_trigger():
     # utc time
     hour = time.localtime().tm_hour
-    # minute = time.localtime().tm_min
-    if hour in [3, 7, 11, 15, 19, 23]:
-    # if minute in [14, 29, 44, 59]:
+    if settings.target_period == '4h':
+        timetable = [3, 7, 11, 15, 19, 23]
+    elif settings.target_period == '1d':
+        timetable = [23]
+    if hour in timetable:
         execute_handler = execute.ExecuteHandler()
         await execute_handler.run()
     else:
