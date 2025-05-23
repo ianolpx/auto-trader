@@ -1,6 +1,5 @@
 from mailjet_rest import Client
 from settings import settings
-
 import asyncio
 import time
 

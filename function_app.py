@@ -3,6 +3,7 @@ import azure.functions as func
 import asyncio
 import time
 from handlers.core import execute
+from handlers.api import notifier
 from settings import settings
 
 app = func.FunctionApp()
@@ -20,6 +21,7 @@ async def timer_trigger(myTimer: func.TimerRequest) -> None:
     logging.info('Python timer trigger function executed.')
     # execute_handler = execute.ExecuteHandler()
     # await execute_handler.run()
+    await notifier.NotifyHandler().send_message("System is restarting...")
     await main_trigger()
 
 
