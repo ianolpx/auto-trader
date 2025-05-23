@@ -13,7 +13,7 @@ def get_secret(key_vault_name: str, key_name: str) -> tuple:
 
 
 class Settings():
-    app_version: str = "0.0.4"
+    app_version: str = "25.3.5"
     cosmos_api_key: str = get_secret("trader-k-v", "cosmos-api-key")
     cosmos_endpoint: str = get_secret("trader-k-v", "cosmos-endpoint")
     cosmos_database_id: str = "trader-db"
