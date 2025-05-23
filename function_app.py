@@ -21,7 +21,7 @@ async def timer_trigger(myTimer: func.TimerRequest) -> None:
     logging.info('Python timer trigger function executed.')
     # execute_handler = execute.ExecuteHandler()
     # await execute_handler.run()
-    await notifier.NotifyHandler().send_message("System is restarting...")
+    # await notifier.NotifyHandler().send_message("System is restarting...")
     await main_trigger()
 
 
