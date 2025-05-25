@@ -206,13 +206,17 @@ class AlgoHandler():
                 actions=['hold'],
                 items=['ELSE'],
                 case="case10")
-        return signal
+        return signal, insignt
 
 
 async def test():
+    from handlers.api.writer import WriterHandler
     algo = AlgoHandler()
     # print(await algo.get_insight())
-    print(await algo.get_signal({'status': 'ready', 'id': '1', 'T1': 'bybit'}))
+    # print(await algo.get_signal({'status': 'ready', 'id': '1', 'T1': 'bybit'}))
+    signal, insight = await algo.get_signal({'status': 'ready', 'id': '1', 'T1': 'bybit'})
+    cursor = WriterHandler().get_cursor()
+    cursor.append_row([insight['f1'], insight['acc'], insight['pred'], signal['case']])
     # print(await algo.get_data('ETH/USDT', '4h'))
 
 # python -m handlers.core.algo
