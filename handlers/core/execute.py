@@ -2,6 +2,8 @@ from handlers.core.algo import AlgoHandler
 from handlers.db.cosmosdb import CosmosDBHandler
 from handlers.api.bybit import BybitHandler
 from handlers.api.notifier import NotifyHandler
+from handlers.api.writer import WriterHandler
+from handlers.utils.common import get_current_time
 import asyncio
 import logging
 import time
@@ -11,9 +13,11 @@ class ExecuteHandler():
     db = CosmosDBHandler()
     algo = AlgoHandler()
     bybit = BybitHandler()
+    writer = WriterHandler().get_cursor()
     profile = None
 
-    async def execute_action(self, action, item, container):
+    async def execute_action(self, action, item, container, insight):
+        t = get_current_time()
         if action == 'buy':
             try:
                 res = self.bybit.buy_eth(symbol=item)
@@ -24,6 +28,9 @@ class ExecuteHandler():
                 }, container)
                 await NotifyHandler().send_message(
                     f"{item} bought")
+                self.writer.append_row(
+                    [t, f"{item} bought", insight['status']])
+
             except Exception as e:
                 await NotifyHandler().send_message(
                     f"Error buying {item}, {e}")
@@ -38,10 +45,11 @@ class ExecuteHandler():
                     'id': '1',
                     'T1': 'bybit'
                 }, container)
-                logging.info(res)
                 budget = self.bybit.get_available_budget_usdt()
                 await NotifyHandler().send_message(
                     f"{item} sold, budget: {budget}")
+                self.writer.append_row(
+                    [t, f"{item} sold", insight['status']])
             except Exception as e:
                 await NotifyHandler().send_message(
                     f"Error selling {item}, {e}")
@@ -67,7 +75,7 @@ class ExecuteHandler():
             }
 
         try:
-            signal = await self.algo.get_signal(profile)
+            signal, insight = await self.algo.get_signal(profile)
         except Exception as e:
             logging.error(e)
             signal = {
@@ -76,7 +84,7 @@ class ExecuteHandler():
             }
 
         for action, item in zip(signal['actions'], signal['items']):
-            await self.execute_action(action, item, container)
+            await self.execute_action(action, item, container, insight)
             time.sleep(3)
         await self.db.close()
 

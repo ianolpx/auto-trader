@@ -27,12 +27,44 @@ class Settings():
     mailjet_api_secret: str = get_secret("trader-k-v", "mailjet-api-secret")
     mailjet_sender_id: str = get_secret("trader-k-v", "mailjet-sender-id")
     mailjet_receiver_id: str = get_secret("trader-k-v", "mailjet-receiver-id")
+    google_service_secret: str = get_secret(
+        "trader-k-v",
+        "google-service-secret")
 
 
 settings = Settings()
+import json
 
 # python -m settings
 if __name__ == "__main__":
-    print(settings.bybit_api_key)
-    print(settings.bybit_secret_key)
-    print(settings.cosmos_api_key)
+    # print(settings.bybit_api_key)
+    # print(settings.bybit_secret_key)
+    # print(settings.cosmos_api_key)
+    print(settings.google_service_secret)
+    # store google_service_secret in a file (json format)
+
+    # Convert single quotes to double quotes for JSON compatibility
+    _gsc_json = settings.google_service_secret.replace("'", "\"")
+    gsc_json = json.loads(_gsc_json)
+    print(gsc_json)
+
+    # gsc_json to file
+    with open("google_service_secret.json", "w") as f:
+        json.dump(
+            gsc_json,
+            f,
+            indent=4
+        )
+    
+
+
+
+
+    
+    # with open("google_service_secret.json", "w") as f:
+    #     json.dump(
+    #         # settings.google_service_secret,
+    #         gsc_json,
+    #         f,
+    #         indent=4
+    #     )
