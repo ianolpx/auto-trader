@@ -29,7 +29,13 @@ class ExecuteHandler():
                 await NotifyHandler().send_message(
                     f"{item} bought")
                 self.writer.append_row(
-                    [t, f"{item} bought", insight['status']])
+                    [
+                        t,
+                        f"{item} bought",
+                        insight['f1'],
+                        insight['acc'],
+                        insight['pred'],
+                    ])
 
             except Exception as e:
                 await NotifyHandler().send_message(
@@ -49,7 +55,13 @@ class ExecuteHandler():
                 await NotifyHandler().send_message(
                     f"{item} sold, budget: {budget}")
                 self.writer.append_row(
-                    [t, f"{item} sold", insight['status']])
+                    [
+                        t,
+                        f"{item} sold",
+                        insight['f1'],
+                        insight['acc'],
+                        insight['pred'],
+                    ])
             except Exception as e:
                 await NotifyHandler().send_message(
                     f"Error selling {item}, {e}")
@@ -86,6 +98,16 @@ class ExecuteHandler():
         for action, item in zip(signal['actions'], signal['items']):
             await self.execute_action(action, item, container, insight)
             time.sleep(3)
+
+        if len(signal['actions'])== 0:
+            self.writer.append_row(
+                [
+                    get_current_time(),
+                    "No actions",
+                    insight['f1'],
+                    insight['acc'],
+                    insight['pred'],
+                 ])
         await self.db.close()
 
 
