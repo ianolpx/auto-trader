@@ -99,7 +99,7 @@ class ExecuteHandler():
             await self.execute_action(action, item, container, insight)
             time.sleep(3)
 
-        if len(signal['actions'])== 0:
+        if len(signal['actions']) == 0:
             self.writer.append_row(
                 [
                     get_current_time(),

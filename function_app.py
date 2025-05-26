@@ -22,7 +22,10 @@ async def timer_trigger(myTimer: func.TimerRequest) -> None:
     # execute_handler = execute.ExecuteHandler()
     # await execute_handler.run()
     # await notifier.NotifyHandler().send_message("System is restarting...")
-    await main_trigger()
+    try:
+        await main_trigger()
+    except Exception as e:
+        await notifier.NotifyHandler().send_message(f"Error in timer trigger: {e}")
 
 
 async def main_trigger():
@@ -33,6 +36,7 @@ async def main_trigger():
     elif settings.target_period == '1d':
         timetable = [23]
     if hour in timetable:
+        await notifier.NotifyHandler().send_message("System is restarting...")
         execute_handler = execute.ExecuteHandler()
         await execute_handler.run()
     else:
