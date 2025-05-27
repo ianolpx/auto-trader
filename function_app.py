@@ -3,7 +3,8 @@ import azure.functions as func
 import asyncio
 import time
 from handlers.core import execute
-from handlers.api import notifier
+from handlers.api import notifier, writer
+from handlers.utils.common import get_current_time
 from settings import settings
 
 app = func.FunctionApp()
@@ -19,9 +20,6 @@ async def timer_trigger(myTimer: func.TimerRequest) -> None:
     if myTimer.past_due:
         logging.info('The timer is past due!')
     logging.info('Python timer trigger function executed.')
-    # execute_handler = execute.ExecuteHandler()
-    # await execute_handler.run()
-    # await notifier.NotifyHandler().send_message("System is restarting...")
     try:
         await main_trigger()
     except Exception as e:
@@ -30,6 +28,15 @@ async def timer_trigger(myTimer: func.TimerRequest) -> None:
 
 async def main_trigger():
     # utc time
+    cursor = writer.WriterHandler().get_cursor()
+    cursor.append_row(
+        [
+            get_current_time(),
+            'System is restarting...',
+            settings.target_period,
+            time.localtime().tm_hour
+        ]
+    )
     hour = time.localtime().tm_hour
     if settings.target_period == '4h':
         timetable = [3, 7, 11, 15, 19, 23]
