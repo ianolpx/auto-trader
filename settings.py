@@ -39,4 +39,7 @@ import json
 if __name__ == "__main__":
     # print(settings.bybit_api_key)
     # print(settings.bybit_secret_key)
-    print(settings.target_period)
+    # print(settings.target_period)
+    # print(settings.google_service_secret)
+    gss = json.loads(settings.google_service_secret)
+    print(gss)

@@ -12,22 +12,14 @@ class WriterHandler:
             "https://spreadsheets.google.com/feeds",
             "https://www.googleapis.com/auth/drive"
         ]
-        self.check_credentials()
+        self.set_credentials()
 
-    def check_credentials(self):
-        """Check if the credentials file exists and load it."""
-        if not os.path.exists("google_service_secret.json"):
-            _gsc_json = settings.google_service_secret.replace("'", "\"")
-            gsc_json = json.loads(_gsc_json)
-            with open("google_service_secret.json", "w") as f:
-                json.dump(
-                    gsc_json,
-                    f,
-                    indent=4
-                )
+    def set_credentials(self):
+        _gsc_json = settings.google_service_secret.replace("'", "\"")
+        gsc_json = json.loads(_gsc_json)
 
-        self.creds = ServiceAccountCredentials.from_json_keyfile_name(
-            "google_service_secret.json",
+        self.creds = ServiceAccountCredentials.from_json_keyfile_dict(
+            gsc_json,
             self.scope
         )
 
