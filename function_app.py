@@ -28,22 +28,22 @@ async def timer_trigger(myTimer: func.TimerRequest) -> None:
 
 async def main_trigger():
     # utc time
-    cursor = writer.WriterHandler().get_cursor()
-    cursor.append_row(
-        [
-            get_current_time(),
-            'System is restarting...',
-            settings.target_period,
-            time.localtime().tm_hour
-        ]
-    )
+    # cursor = writer.WriterHandler().get_cursor()
+    # cursor.append_row(
+    #     [
+    #         get_current_time(),
+    #         'System is restarting...',
+    #         settings.target_period,
+    #         time.localtime().tm_hour
+    #     ]
+    # )
     hour = time.localtime().tm_hour
     if settings.target_period == '4h':
         timetable = [3, 7, 11, 15, 19, 23]
     elif settings.target_period == '1d':
         timetable = [23]
     if hour in timetable:
-        await notifier.NotifyHandler().send_message("System is restarting...")
+        # await notifier.NotifyHandler().send_message("System is restarting...")
         execute_handler = execute.ExecuteHandler()
         await execute_handler.run()
     else:
