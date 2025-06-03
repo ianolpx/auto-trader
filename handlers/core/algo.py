@@ -5,6 +5,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.model_selection import GridSearchCV
 from ta import add_all_ta_features
 from settings import settings
+from xgboost import XGBClassifier
 
 import pandas as pd
 import numpy as np
@@ -22,9 +23,7 @@ class AlgoHandler():
         bybit = ccxt.bybit()
 
         async with bybit:
-            # etc_ohlcv = await bybit.fetch_ohlcv('ETH/USDT', '1d')
-            # max data
-            etc_ohlcv = await bybit.fetch_ohlcv(symbol, timeframe, limit=400)
+            etc_ohlcv = await bybit.fetch_ohlcv(symbol, timeframe, limit=600)
             df = pd.DataFrame(
                 etc_ohlcv,
                 columns=['timestamp', 'open', 'high', 'low', 'close', 'volume'])
@@ -32,7 +31,6 @@ class AlgoHandler():
             return df
 
     async def get_nomalized_data(self, symbol, timeframe, shift=5):
-        # df = await self.get_data('ETH/USDT', '1d')
         try:
             df = await self.get_data(symbol, timeframe)
         except Exception as e:
@@ -73,32 +71,46 @@ class AlgoHandler():
     async def get_up_down_score(self, data):
         new_y = []
         df = data['df']
-        # y = np.where(X['Close'].shift(-5) > X['Close'], 1, -1)
-        new_y = np.where(df['close'].shift(-5) > df['close'], 1, -1)
+        new_y = np.where(
+            df['target'].shift(-5) > df['close'], 1, 0)
 
-        # GridSearchCV - RandomForestClassifier
-        param_grid = {
-            'n_estimators': [50, 100, 200],
-            'max_depth': [5, 10, 15, 20],
-            'min_samples_split': [2, 5, 10],
-            'min_samples_leaf': [1, 2, 4]
-        }
-
-        classifier = RandomForestClassifier()
-        grid_search = GridSearchCV(
-            classifier, param_grid, cv=5, n_jobs=-1, verbose=2)
-        grid_search.fit(data['X_new'], new_y)
-        print(grid_search.best_params_)
-
-        classifier = RandomForestClassifier(
-            max_depth=grid_search.best_params_['max_depth'],
-            min_samples_leaf=grid_search.best_params_['min_samples_leaf'],
-            min_samples_split=grid_search.best_params_['min_samples_split'],
-            n_estimators=grid_search.best_params_['n_estimators']
+        classifier = XGBClassifier(
+            use_label_encoder=False,
+            eval_metric='mlogloss',
+            n_jobs=-1,
+            random_state=42,
+            max_depth=5,
+            min_child_weight=1,
+            n_estimators=100,
+            learning_rate=0.1,
+            subsample=0.8,
+            colsample_bytree=0.8,
+            gamma=0,
+            reg_alpha=0,
+            reg_lambda=1
         )
 
-        # val = cross_val_score(classifier, data['X_new'], new_y, cv=5)
-        # print(val)
+        # GridSearchCV - RandomForestClassifier
+        # param_grid = {
+        #     'n_estimators': [50, 100, 200],
+        #     'max_depth': [5, 10, 15, 20],
+        #     'min_samples_split': [2, 5, 10],
+        #     'min_samples_leaf': [1, 2, 4]
+        # }
+
+        # classifier = RandomForestClassifier()
+        # grid_search = GridSearchCV(
+        #     classifier, param_grid, cv=5, n_jobs=-1, verbose=2)
+        # grid_search.fit(data['X_new'], new_y)
+        # print(grid_search.best_params_)
+
+        # classifier = RandomForestClassifier(
+        #     max_depth=grid_search.best_params_['max_depth'],
+        #     min_samples_leaf=grid_search.best_params_['min_samples_leaf'],
+        #     min_samples_split=grid_search.best_params_['min_samples_split'],
+        #     n_estimators=grid_search.best_params_['n_estimators']
+        # )
+
         repect = 10
         preds, f1s, accs = [], [], []
         for x in range(1, repect):
@@ -125,12 +137,9 @@ class AlgoHandler():
         acc = sum(accs) / repect
         pred = sum(preds) / repect
 
-        # if rate > 1 and pred == 1 and f1 > 0.75:
-        print(pred)
-        # if rate > 1 and pred > 0.7 and (f1+acc) > 1.4:
-        if pred > 0:
+        if pred > 0.5:
             status = 'up'
-        elif pred <= 0:
+        elif pred <= 0.5:
             status = 'down'
         else:
             status = 'hold'
@@ -144,9 +153,7 @@ class AlgoHandler():
 
     async def get_insight(self):
         symbol = 'BTC/USDT'
-        # 15m, 30m, 1h, 4h, 1d, 1w
         interval = settings.target_period
-        # interval = '15m'
 
         data = await self.get_nomalized_data(symbol, interval, shift=5)
         score = await self.get_up_down_score(data)
@@ -212,11 +219,11 @@ class AlgoHandler():
 async def test():
     from handlers.api.writer import WriterHandler
     algo = AlgoHandler()
-    # print(await algo.get_insight())
-    # print(await algo.get_signal({'status': 'ready', 'id': '1', 'T1': 'bybit'}))
-    signal, insight = await algo.get_signal({'status': 'ready', 'id': '1', 'T1': 'bybit'})
-    cursor = WriterHandler().get_cursor()
-    cursor.append_row([insight['f1'], insight['acc'], insight['pred'], signal['case']])
+    print(await algo.get_insight())
+    print(await algo.get_signal({'status': 'ready', 'id': '1', 'T1': 'bybit'}))
+    # signal, insight = await algo.get_signal({'status': 'ready', 'id': '1', 'T1': 'bybit'})
+    # cursor = WriterHandler().get_cursor()
+    # cursor.append_row([insight['f1'], insight['acc'], insight['pred'], signal['case']])
     # print(await algo.get_data('ETH/USDT', '4h'))
 
 # python -m handlers.core.algo
